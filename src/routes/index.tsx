@@ -171,7 +171,7 @@ function RecipeEngine({ phase, pain }: { phase: PhaseName | null; pain: PainLeve
       {pain === "Severe" && <div role="alert" className="flex items-start gap-2 rounded-2xl border border-accent-foreground/40 bg-accent p-3 text-sm text-accent-foreground"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> For debilitating pain, consider rest and consulting a healthcare professional.</div>}
       {!phase && <p className="text-sm text-muted-foreground">Add your cycle above to unlock phase-matched recipes.</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Results items={items} tags={PAIN_LEVELS.find((p) => p.level === usedPain)?.tags} />
+      <Results items={items} tags={PAIN_LEVELS.find((p) => p.level === usedPain)?.tags ?? []} />
     </section>
   );
 }
