@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep the curated craving guide available without AI or a cycle date; use the existing server call only for additional phase-matched suggestions, so the core guide works offline.

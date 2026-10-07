@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarHeart, ChefHat, Candy, Cookie, Soup, Coffee, IceCream, Lock, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { CalendarHeart, ChefHat, Candy, Lock, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { calcPhase, clearCycle, loadCycle, PHASES, saveCycle, type PhaseName } from "@/lib/cycle";
 import { getRecipes, getSwaps, type Suggestion } from "@/lib/nebius.functions";
 
@@ -20,11 +21,34 @@ export const Route = createFileRoute("/")({
 });
 
 const CRAVINGS = [
-  { name: "Sugar", icon: Candy },
-  { name: "Salt", icon: Soup },
-  { name: "Chocolate", icon: Cookie },
-  { name: "Carbs", icon: IceCream },
-  { name: "Caffeine", icon: Coffee },
+  {
+    name: "Chocolate", emoji: "🍫",
+    why: "Cycle-related changes in appetite and mood may increase chocolate cravings. A craving alone does not indicate low magnesium.",
+    swap: "70%+ dark chocolate with roasted pumpkin seeds or almond butter",
+    nutrients: "Magnesium & zinc",
+    benefit: "Support normal muscle and nerve function; symptom relief is not guaranteed.",
+  },
+  {
+    name: "Salty & Crunchy", emoji: "🍿",
+    why: "Hormonal changes can affect fluid balance around your period, while stress and food preferences may influence salty cravings.",
+    swap: "Lightly salted roasted chickpeas or air-popped popcorn with nutritional yeast",
+    nutrients: "Potassium & protein",
+    benefit: "Chickpeas provide protein and potassium. Nutrient amounts depend on your ingredients and portion.",
+  },
+  {
+    name: "Fried & Fatty", emoji: "🍟",
+    why: "Appetite can increase in the luteal phase. Craving fatty foods does not establish an essential fatty acid deficiency.",
+    swap: "Baked sweet potato wedges tossed in olive oil or mashed avocado toast",
+    nutrients: "Healthy fats & vitamin B6",
+    benefit: "Provide unsaturated fats and B6 for everyday nourishment, rather than a proven boost to progesterone.",
+  },
+  {
+    name: "Carbs / Pastries", emoji: "🍰",
+    why: "Premenstrual changes in mood and appetite may contribute to sweet or carbohydrate cravings; serotonin is only one possible factor.",
+    swap: "Warm oatmeal with cinnamon, chia seeds, and sliced banana",
+    nutrients: "Complex carbs & tryptophan",
+    benefit: "Oats and chia add fiber for a more filling snack; this is not a guaranteed serotonin or blood-sugar treatment.",
+  },
 ];
 
 function Index() {
@@ -134,22 +158,34 @@ function RecipeEngine({ phase }: { phase: PhaseName | null }) {
 }
 
 function CravingSwaps({ phase }: { phase: PhaseName | null }) {
-  const [sel, setSel] = useState<string | null>(null);
+  const [sel, setSel] = useState("Chocolate");
+  const selected = CRAVINGS.find((craving) => craving.name === sel) ?? CRAVINGS[0];
   const fetchSwaps = useServerFn(getSwaps);
   const { items, loading, error, run } = useAsk();
   return (
     <section className="card-soft space-y-4">
       <h2 className="section-title"><Candy className="h-5 w-5 text-primary" /> PMS craving swaps</h2>
       <div className="flex flex-wrap gap-2">
-        {CRAVINGS.map(({ name, icon: Icon }) => (
-          <button key={name} className={sel === name ? "chip chip-active" : "chip"} disabled={!phase || loading}
-            onClick={() => { setSel(name); phase && run(() => fetchSwaps({ data: { phase, craving: name } })); }}>
-            <Icon className="h-4 w-4" /> {name}
-          </button>
+        {CRAVINGS.map(({ name, emoji }) => (
+          <Button key={name} variant="outline" className={sel === name ? "chip chip-active h-auto whitespace-normal text-left" : "chip h-auto whitespace-normal text-left"} disabled={loading}
+            aria-pressed={sel === name} onClick={() => setSel(name)}>
+            <span aria-hidden="true">{emoji}</span> {name}
+          </Button>
         ))}
       </div>
+      {selected && <div aria-live="polite" className="space-y-4 border-t pt-4">
+        <h3 className="font-display text-xl">{selected.emoji} {selected.name}</h3>
+        <dl className="space-y-4 text-sm">
+          <div><dt className="font-medium">Biological “why”</dt><dd className="mt-1 text-muted-foreground">{selected.why}</dd></div>
+          <div><dt className="font-medium">Hormone-friendly swap</dt><dd className="mt-1 text-foreground">{selected.swap}</dd></div>
+          <div><dt className="font-medium">Key nutrients</dt><dd className="mt-1 text-primary">{selected.nutrients}</dd><dd className="mt-1 text-muted-foreground">{selected.benefit}</dd></div>
+        </dl>
+      </div>}
+      <Button disabled={!phase || loading} onClick={() => phase && run(() => fetchSwaps({ data: { phase, craving: sel } }))}>
+        {loading ? <Loader2 className="animate-spin" /> : <Sparkles />} More phase-matched swaps
+      </Button>
       {loading && <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Finding gentle swaps…</p>}
-      {!phase && <p className="text-sm text-muted-foreground">Add your cycle above to get swaps for your phase.</p>}
+      {!phase && <p className="text-sm text-muted-foreground">Add your cycle above for additional phase-matched swaps.</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Results items={items} />
     </section>
