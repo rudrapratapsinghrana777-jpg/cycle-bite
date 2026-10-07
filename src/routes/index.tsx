@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarHeart, ChefHat, Candy, Lock, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { CalendarHeart, ChefHat, Activity, AlertTriangle, Candy, Lock, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { calcPhase, clearCycle, loadCycle, PHASES, saveCycle, type PhaseName } from "@/lib/cycle";
+import { calcPhase, clearCycle, loadCycle, loadPain, PAIN_LEVELS, PHASES, saveCycle, savePain, type PainLevel, type PhaseName } from "@/lib/cycle";
 import { getRecipes, getSwaps, type Suggestion } from "@/lib/nebius.functions";
 
 export const Route = createFileRoute("/")({
@@ -55,7 +55,9 @@ function Index() {
   const [start, setStart] = useState("");
   const [length, setLength] = useState(28);
   const [saved, setSaved] = useState(false);
+  const [pain, setPain] = useState<PainLevel>("Mild");
   useEffect(() => {
+    setPain(loadPain());
     const c = loadCycle();
     if (c) { setStart(c.start); setLength(c.length); setSaved(true); }
   }, []);
@@ -103,7 +105,21 @@ function Index() {
           )}
         </section>
 
-        <RecipeEngine phase={phase} />
+        <section className="card-soft space-y-4">
+          <h2 className="section-title"><Activity className="h-5 w-5 text-primary" /> Pain &amp; cramp level</h2>
+          <div role="radiogroup" aria-label="Pain and cramp level" className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1">
+            {PAIN_LEVELS.map(({ level, dot }) => (
+              <button key={level} role="radio" aria-checked={pain === level}
+                onClick={() => { setPain(level); savePain(level); }}
+                className={`rounded-full px-3 py-2 text-sm transition ${pain === level ? "bg-card text-foreground shadow-sm font-medium" : "text-muted-foreground hover:text-foreground"}`}>
+                <span aria-hidden="true">{dot}</span> {level}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">Saved on this device. Recipes adapt to how you feel.</p>
+        </section>
+
+        <RecipeEngine phase={phase} pain={pain} />
         <CravingSwaps phase={phase} />
 
         <footer className="text-center text-xs text-muted-foreground pb-6">General wellness guidance, not medical advice.</footer>
@@ -112,11 +128,12 @@ function Index() {
   );
 }
 
-function Results({ items }: { items: Suggestion[] }) {
+function Results({ items, tags = [] }: { items: Suggestion[]; tags?: string[] }) {
   return (
     <div className="grid gap-3 md:grid-cols-3">
       {items.slice(0, 3).map((s, i) => (
         <article key={i} className="result-card">
+          {tags.length > 0 && <div className="mb-2 flex flex-wrap gap-1">{tags.map((t) => <span key={t} className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">{t}</span>)}</div>}
           <h3 className="font-display text-lg leading-tight">{s.title}</h3>
           <p className="text-sm text-muted-foreground">{s.description}</p>
           <ul className="mt-2 space-y-1 text-sm list-disc pl-4">{s.details.map((d, j) => <li key={j}>{d}</li>)}</ul>
@@ -138,8 +155,9 @@ function useAsk() {
   return { items, loading, error, run };
 }
 
-function RecipeEngine({ phase }: { phase: PhaseName | null }) {
+function RecipeEngine({ phase, pain }: { phase: PhaseName | null; pain: PainLevel }) {
   const [ing, setIng] = useState("");
+  const [usedPain, setUsedPain] = useState<PainLevel>(pain);
   const fetchRecipes = useServerFn(getRecipes);
   const { items, loading, error, run } = useAsk();
   return (
@@ -147,12 +165,13 @@ function RecipeEngine({ phase }: { phase: PhaseName | null }) {
       <h2 className="section-title"><ChefHat className="h-5 w-5 text-primary" /> Fridge-to-plate</h2>
       <textarea className="field min-h-24" placeholder="eggs, spinach, sweet potato…" value={ing} onChange={(e) => setIng(e.target.value)} />
       <button className="btn-primary" disabled={!phase || !ing.trim() || loading}
-        onClick={() => phase && run(() => fetchRecipes({ data: { phase, focus: PHASES[phase].focus, ingredients: ing.trim() } }))}>
+        onClick={() => { if (!phase) return; setUsedPain(pain); run(() => fetchRecipes({ data: { phase, focus: PHASES[phase].focus, ingredients: ing.trim(), painLevel: pain } })); }}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Cook up 3 ideas
       </button>
+      {pain === "Severe" && <div role="alert" className="flex items-start gap-2 rounded-2xl border border-accent-foreground/40 bg-accent p-3 text-sm text-accent-foreground"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> For debilitating pain, consider rest and consulting a healthcare professional.</div>}
       {!phase && <p className="text-sm text-muted-foreground">Add your cycle above to unlock phase-matched recipes.</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Results items={items} />
+      <Results items={items} tags={PAIN_LEVELS.find((p) => p.level === usedPain)?.tags} />
     </section>
   );
 }

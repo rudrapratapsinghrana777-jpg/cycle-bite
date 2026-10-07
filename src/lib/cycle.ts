@@ -29,3 +29,15 @@ export const loadCycle = (): { start: string; length: number } | null => {
 };
 export const saveCycle = (v: { start: string; length: number }) => localStorage.setItem(KEY, JSON.stringify(v));
 export const clearCycle = () => localStorage.removeItem(KEY);
+
+export type PainLevel = "Mild" | "Moderate" | "Severe";
+export const PAIN_LEVELS: { level: PainLevel; dot: string; tags: string[] }[] = [
+  { level: "Mild", dot: "🟢", tags: ["Anti-Inflammatory"] },
+  { level: "Moderate", dot: "🟡", tags: ["Cramp Relief", "Magnesium Boost"] },
+  { level: "Severe", dot: "🔴", tags: ["Soothing & Easy-Digest", "High-Antispasmodic"] },
+];
+const PAIN_KEY = "cyclebite:pain";
+export const loadPain = (): PainLevel => {
+  try { const v = localStorage.getItem(PAIN_KEY); return v === "Moderate" || v === "Severe" ? v : "Mild"; } catch { return "Mild"; }
+};
+export const savePain = (v: PainLevel) => localStorage.setItem(PAIN_KEY, v);

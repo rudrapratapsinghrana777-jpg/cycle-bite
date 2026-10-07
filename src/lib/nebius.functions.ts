@@ -40,11 +40,14 @@ const phaseSchema = z.enum(["Menstrual", "Follicular", "Ovulatory", "Luteal"]);
 
 // Only the phase name is sent — never cycle dates.
 export const getRecipes = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ phase: phaseSchema, focus: z.string().max(200), ingredients: z.string().min(1).max(500) }).parse(d))
+  .inputValidator((d) => z.object({ phase: phaseSchema, focus: z.string().max(200), ingredients: z.string().min(1).max(500), painLevel: z.enum(["Mild", "Moderate", "Severe"]).default("Mild") }).parse(d))
   .handler(({ data }) =>
     callNebius(
-      "You are a warm, practical nutritionist creating cycle-synced recipes.",
-      `Phase: ${data.phase} (focus: ${data.focus}). Ingredients on hand: ${data.ingredients}. Suggest up to 3 simple recipes. details = short ingredient + step list.`,
+      "You are a warm, practical nutritionist creating cycle-synced recipes. Adapt to the user's pain & cramp level (painLevel): " +
+        "Mild = standard phase-synced ingredients with gentle anti-inflammatory herbs (e.g. chamomile, a little ginger). " +
+        "Moderate = boost natural antispasmodics and vasodilators (magnesium-rich pumpkin seeds, dark chocolate, omega-3s) and favour warm cooked meals to ease uterine contractions. " +
+        "Severe = prioritise soothing, ultra-digestible, warm liquid-heavy meals (turmeric-ginger broths, golden milk teas, iron-rich pureed soups).",
+      `Phase: ${data.phase} (focus: ${data.focus}). painLevel: ${data.painLevel}. Ingredients on hand: ${data.ingredients}. Suggest up to 3 simple recipes. details = short ingredient + step list.`,
     ),
   );
 
