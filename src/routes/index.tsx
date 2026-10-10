@@ -95,6 +95,7 @@ function Index() {
           <h1 className="font-display text-5xl text-foreground">Cycle<span className="text-accent-foreground italic">Bite</span></h1>
           <p className="text-muted-foreground">Nourishment that moves with your rhythm.</p>
           <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"><Lock className="h-3 w-3" /> Your dates stay on this device only.</p>
+          <div className="pt-1"><a href="#faq" className="chip"><HelpCircle className="h-3.5 w-3.5 text-primary" /> Questions &amp; answers</a></div>
         </header>
 
         <section className="card-soft space-y-4">
@@ -148,7 +149,10 @@ function Index() {
 
         <Faq />
 
-        <footer className="text-center text-xs text-muted-foreground pb-6">General wellness guidance, not medical advice.</footer>
+        <footer className="flex flex-col items-center gap-2 pb-6 text-center text-xs text-muted-foreground">
+          <span>General wellness guidance, not medical advice.</span>
+          <a href="#faq" className="inline-flex items-center gap-1.5 transition hover:text-foreground"><HelpCircle className="h-3 w-3" /> Questions &amp; answers</a>
+        </footer>
       </div>
     </main>
   );
@@ -239,7 +243,7 @@ function CravingSwaps({ phase }: { phase: PhaseName | null }) {
 
 function Faq() {
   return (
-    <section className="card-soft space-y-4">
+    <section id="faq" className="card-soft scroll-mt-6 space-y-4">
       <h2 className="section-title"><HelpCircle className="h-5 w-5 text-primary" /> Questions &amp; answers</h2>
       <Accordion type="single" collapsible defaultValue="faq-0">
         {FAQS.map((item, i) => (

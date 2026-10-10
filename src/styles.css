@@ -112,4 +112,5 @@
   .phase-banner { @apply flex items-center gap-4 rounded-2xl p-5; background: var(--gradient-phase); }
   .result-card { @apply rounded-2xl border bg-secondary/40 p-4 animate-in fade-in slide-in-from-bottom-2; }
 }
+html { scroll-behavior: smooth; }
 body { font-family: var(--font-sans); }
