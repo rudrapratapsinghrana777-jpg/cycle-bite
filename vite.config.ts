@@ -12,4 +12,12 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    optimizeDeps: {
+      // Pre-bundle the accordion's Radix modules up front. If the dev server
+      // discovers them mid-session it re-optimizes and serves a stale module
+      // graph where React resolves to null, blanking the page.
+      include: ["@radix-ui/react-accordion"],
+    },
+  },
 });

@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarHeart, ChefHat, Activity, AlertTriangle, Candy, Lock, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { CalendarHeart, ChefHat, Activity, AlertTriangle, Candy, HelpCircle, Lock, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { calcPhase, clearCycle, loadCycle, loadPain, PAIN_LEVELS, PHASES, saveCycle, savePain, type PainLevel, type PhaseName } from "@/lib/cycle";
 import { getRecipes, getSwaps, type Suggestion } from "@/lib/nebius.functions";
 
@@ -48,6 +49,29 @@ const CRAVINGS = [
     swap: "Warm oatmeal with cinnamon, chia seeds, and sliced banana",
     nutrients: "Complex carbs & tryptophan",
     benefit: "Oats and chia add fiber for a more filling snack; this is not a guaranteed serotonin or blood-sugar treatment.",
+  },
+];
+
+const FAQS = [
+  {
+    q: "How does CycleBite protect my private health data?",
+    a: "CycleBite uses a zero-cloud, local-first architecture. All your cycle dates, pain logs, and craving choices are stored strictly in your browser's localStorage. No personal tracking history or health logs are ever saved on an external server.",
+  },
+  {
+    q: "How do the meal recommendations change when I have severe pain?",
+    a: "When you log severe pain or cramping, CycleBite instantly adapts your meal plan\u2014shifting away from heavy, solid foods toward warm, comforting, and easily digestible choices rich in natural antispasmodics and magnesium to help soothe discomfort.",
+  },
+  {
+    q: "Can I use CycleBite if my cycle length varies?",
+    a: "Yes! CycleBite operates on a flexible, day-by-day phase selector rather than assuming a rigid 28-day calendar. Simply select your current phase and symptom severity, and the app adapts in real time.",
+  },
+  {
+    q: "How do PMS Craving Swaps work?",
+    a: "Premenstrual cravings often signal underlying micronutrient needs, like a drop in magnesium or potassium. Our craving tool translates these cravings into delicious, satisfying culinary alternatives that curb the impulse while keeping your energy stable.",
+  },
+  {
+    q: "Is CycleBite a replacement for professional medical advice?",
+    a: "No. CycleBite is designed as a nutritional and lifestyle companion to help you navigate hormonal shifts. Always consult a healthcare professional for medical conditions or severe health concerns.",
   },
 ];
 
@@ -121,6 +145,8 @@ function Index() {
 
         <RecipeEngine phase={phase} pain={pain} />
         <CravingSwaps phase={phase} />
+
+        <Faq />
 
         <footer className="text-center text-xs text-muted-foreground pb-6">General wellness guidance, not medical advice.</footer>
       </div>
@@ -207,6 +233,22 @@ function CravingSwaps({ phase }: { phase: PhaseName | null }) {
       {!phase && <p className="text-sm text-muted-foreground">Add your cycle above for additional phase-matched swaps.</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Results items={items} />
+    </section>
+  );
+}
+
+function Faq() {
+  return (
+    <section className="card-soft space-y-4">
+      <h2 className="section-title"><HelpCircle className="h-5 w-5 text-primary" /> Questions &amp; answers</h2>
+      <Accordion type="single" collapsible defaultValue="faq-0">
+        {FAQS.map((item, i) => (
+          <AccordionItem key={item.q} value={`faq-${i}`}>
+            <AccordionTrigger className="text-left font-display text-lg hover:no-underline">{item.q}</AccordionTrigger>
+            <AccordionContent className="text-sm leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </section>
   );
 }
