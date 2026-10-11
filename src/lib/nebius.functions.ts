@@ -43,11 +43,13 @@ export const getRecipes = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ phase: phaseSchema, focus: z.string().max(200), ingredients: z.string().min(1).max(500), painLevel: z.enum(["Mild", "Moderate", "Severe"]).default("Mild") }).parse(d))
   .handler(({ data }) =>
     callNebius(
-      "You are a warm, practical nutritionist creating cycle-synced recipes. Adapt to the user's pain & cramp level (painLevel): " +
+      "You are a smart clinical nutritionist creating cycle-synced recipes. Adapt to the user's pain & cramp level (painLevel): " +
         "Mild = standard phase-synced ingredients with gentle anti-inflammatory herbs (e.g. chamomile, a little ginger). " +
         "Moderate = boost natural antispasmodics and vasodilators (magnesium-rich pumpkin seeds, dark chocolate, omega-3s) and favour warm cooked meals to ease uterine contractions. " +
-        "Severe = prioritise soothing, ultra-digestible, warm liquid-heavy meals (turmeric-ginger broths, golden milk teas, iron-rich pureed soups).",
-      `Phase: ${data.phase} (focus: ${data.focus}). painLevel: ${data.painLevel}. Ingredients on hand: ${data.ingredients}. Suggest up to 3 simple recipes. details = short ingredient + step list.`,
+        "Severe = prioritise soothing, ultra-digestible, warm liquid-heavy meals (turmeric-ginger broths, golden milk teas, iron-rich pureed soups). " +
+        "Ingredient judgment: if a listed ingredient is counter-productive for the current phase or pain level (e.g. cold/raw foods, caffeine, excess salt, refined sugar, fried or heavily processed items during menstrual or severe-pain phases), do NOT feature it — intelligently minimize it, substitute a phase-appropriate alternative, or omit it. " +
+        "Whenever you adapt, minimize, or substitute an ingredient this way, explicitly explain the biological reason (hormonal, inflammatory, digestive, or fluid-balance mechanism) in that recipe's description.",
+      `Phase: ${data.phase} (focus: ${data.focus}). painLevel: ${data.painLevel}. Ingredients on hand: ${data.ingredients}. Suggest up to 3 simple recipes. details = short ingredient + step list. description = include the biological rationale for any adapted or substituted ingredient.`,
     ),
   );
 
