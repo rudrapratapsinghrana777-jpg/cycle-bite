@@ -89,9 +89,12 @@ function Index() {
   const phase: PhaseName | null = info?.phase ?? null;
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-3xl px-5 py-10 space-y-6">
+    <main className="relative min-h-screen overflow-x-clip bg-background">
+      <div aria-hidden="true" className="glow glow-sage" />
+      <div aria-hidden="true" className="glow glow-rose" />
+      <div className="relative mx-auto max-w-3xl px-5 py-10 space-y-6">
         <header className="text-center space-y-2">
+          <span className="hero-badge">✦ Zero-cloud · Local-first companion</span>
           <h1 className="font-display text-5xl text-foreground">Cycle<span className="text-accent-foreground italic">Bite</span></h1>
           <p className="text-muted-foreground">Nourishment that moves with your rhythm.</p>
           <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"><Lock className="h-3 w-3" /> Your dates stay on this device only.</p>
@@ -118,6 +121,7 @@ function Index() {
             </button>
             {saved && <button className="btn-ghost" onClick={() => { clearCycle(); setStart(""); setLength(28); setSaved(false); }}><Trash2 className="h-4 w-4" /> Clear</button>}
           </div>
+          <PhaseTimeline phase={phase} day={info?.day ?? null} length={info?.length ?? length} />
           {info && phase && (
             <div className="phase-banner">
               <div className="text-4xl">{PHASES[phase].emoji}</div>
@@ -238,6 +242,40 @@ function CravingSwaps({ phase }: { phase: PhaseName | null }) {
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Results items={items} />
     </section>
+  );
+}
+
+const TIMELINE: { name: PhaseName; icon: string; days: (len: number) => string; chips: string[] }[] = [
+  { name: "Menstrual", icon: "🩸", days: () => "Days 1–5", chips: ["Iron", "Warming"] },
+  { name: "Follicular", icon: "🌱", days: (l) => `Days 6–${Math.max(14, l - 14) - 1}`, chips: ["Zinc", "Probiotics"] },
+  { name: "Ovulatory", icon: "✨", days: (l) => { const o = Math.max(14, l - 14); return `Days ${o}–${o + 3}`; }, chips: ["Antioxidants", "Fiber"] },
+  { name: "Luteal", icon: "🍂", days: (l) => `Days ${Math.max(14, l - 14) + 4}–${l}`, chips: ["Magnesium", "Complex carbs"] },
+];
+
+function PhaseTimeline({ phase, day, length }: { phase: PhaseName | null; day: number | null; length: number }) {
+  const pct = day ? Math.min(100, (day / length) * 100) : 0;
+  return (
+    <div className="space-y-3">
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuemin={1} aria-valuemax={length} aria-valuenow={day ?? undefined} aria-label="Cycle progress">
+        <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${pct}%` }} />
+      </div>
+      <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {TIMELINE.map((t) => {
+          const active = t.name === phase;
+          return (
+            <li key={t.name} aria-current={active ? "step" : undefined} className={`phase-step ${active ? "phase-step-active" : ""}`}>
+              <div className="flex items-center justify-between">
+                <span className="text-xl" aria-hidden="true">{t.icon}</span>
+                {active && day && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">Day {day}</span>}
+              </div>
+              <p className="font-display text-base leading-tight">{t.name}</p>
+              <p className="text-xs text-muted-foreground">{t.days(length)}</p>
+              {active && <div className="flex flex-wrap gap-1 pt-1">{t.chips.map((c) => <span key={c} className="rounded-full bg-card px-2 py-0.5 text-[10px] text-secondary-foreground">{c}</span>)}</div>}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 

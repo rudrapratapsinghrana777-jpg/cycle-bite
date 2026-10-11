@@ -111,6 +111,12 @@
   .chip-active { @apply border-accent-foreground bg-accent text-accent-foreground; }
   .phase-banner { @apply flex items-center gap-4 rounded-2xl p-5; background: var(--gradient-phase); }
   .result-card { @apply rounded-2xl border bg-secondary/40 p-4 animate-in fade-in slide-in-from-bottom-2; }
+  .hero-badge { @apply mb-2 inline-flex items-center rounded-full border bg-card/70 px-3 py-1 text-xs text-secondary-foreground backdrop-blur; }
+  .phase-step { @apply space-y-1 rounded-2xl border bg-background/60 p-3 transition-all duration-300 opacity-70; }
+  .phase-step-active { @apply opacity-100 border-primary -translate-y-0.5; background: var(--gradient-phase); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 20%, transparent), var(--shadow-soft); }
+  .glow { @apply pointer-events-none absolute rounded-full; width: 28rem; height: 28rem; filter: blur(90px); opacity: 0.55; }
+  .glow-sage { top: -8rem; left: -10rem; background: var(--secondary); }
+  .glow-rose { top: 18rem; right: -12rem; background: var(--accent); }
 }
 html { scroll-behavior: smooth; }
 body { font-family: var(--font-sans); }
