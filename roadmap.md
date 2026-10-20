@@ -1,0 +1,3 @@
+- [ ] Add local cycle history and estimated next period, preserving existing sections.
+- [ ] Add symptom wellness tips with private server calls and offline guidance.
+- [ ] Test history predictions, persistence, and new page flows.
