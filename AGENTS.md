@@ -10,3 +10,5 @@
 <!-- LOVABLE:END -->
 
 - Keep the curated craving guide available without AI or a cycle date; use the existing server call only for additional phase-matched suggestions, so the core guide works offline.
+- Keep history calculations in a browser-safe helper and localStorage; initialise storage in effects and never invent historical dates, so SSR and privacy remain safe.
+- Use the existing Nebius server functions for optional wellness suggestions, with explicit symptom-sharing consent and offline general guidance; never expose provider credentials in browser code.

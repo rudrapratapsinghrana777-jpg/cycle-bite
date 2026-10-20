@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { calcPhase, clearCycle, loadCycle, loadPain, PAIN_LEVELS, PHASES, saveCycle, savePain, type PainLevel, type PhaseName } from "@/lib/cycle";
 import { getRecipes, getSwaps, type Suggestion } from "@/lib/nebius.functions";
+import { CycleHistory } from "@/components/CycleHistory";
+import { WellnessTips } from "@/components/WellnessTips";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -55,7 +57,7 @@ const CRAVINGS = [
 const FAQS = [
   {
     q: "How does CycleBite protect my private health data?",
-    a: "CycleBite uses a zero-cloud, local-first architecture. All your cycle dates, pain logs, and craving choices are stored strictly in your browser's localStorage. No personal tracking history or health logs are ever saved on an external server.",
+    a: "Cycle dates and cycle history stay in your browser on this device. Your saved pain level stays here too. Personalised suggestions send your estimated phase, ingredients or craving, and relevant pain level to the AI service—not your cycle dates. Symptom tips send your note only with your agreement. Your craving guide and everyday wellness guidance remain available without AI.",
   },
   {
     q: "How do the meal recommendations change when I have severe pain?",
@@ -94,7 +96,7 @@ function Index() {
       <div aria-hidden="true" className="glow glow-rose" />
       <div className="relative mx-auto max-w-3xl px-5 py-10 space-y-6">
         <header className="text-center space-y-2">
-          <span className="hero-badge">✦ Zero-cloud · Local-first companion</span>
+          <span className="hero-badge">✦ Privacy-first · Local-first companion</span>
           <h1 className="font-display text-5xl text-foreground">Cycle<span className="text-accent-foreground italic">Bite</span></h1>
           <p className="text-muted-foreground">Nourishment that moves with your rhythm.</p>
           <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"><Lock className="h-3 w-3" /> Your dates stay on this device only.</p>
@@ -134,6 +136,11 @@ function Index() {
           )}
         </section>
 
+        <CycleHistory onCycleChange={cycle => {
+          if (cycle) { setStart(cycle.start); setLength(cycle.length); saveCycle(cycle); setSaved(true); }
+          else { clearCycle(); setStart(""); setLength(28); setSaved(false); }
+        }} />
+
         <section className="card-soft space-y-4">
           <h2 className="section-title"><Activity className="h-5 w-5 text-primary" /> Pain &amp; cramp level</h2>
           <div role="radiogroup" aria-label="Pain and cramp level" className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1">
@@ -150,6 +157,7 @@ function Index() {
 
         <RecipeEngine phase={phase} pain={pain} />
         <CravingSwaps phase={phase} />
+        <WellnessTips phase={phase} pain={pain} />
 
         <Faq />
 
