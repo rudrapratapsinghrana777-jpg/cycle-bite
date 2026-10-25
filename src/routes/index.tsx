@@ -8,6 +8,7 @@ import { calcPhase, clearCycle, loadCycle, loadPain, PAIN_LEVELS, PHASES, saveCy
 import { getRecipes, getSwaps, type Suggestion } from "@/lib/nebius.functions";
 import { CycleHistory } from "@/components/CycleHistory";
 import { WellnessTips } from "@/components/WellnessTips";
+import { MoodTracker } from "@/components/MoodTracker";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -157,6 +158,7 @@ function Index() {
 
         <RecipeEngine phase={phase} pain={pain} />
         <CravingSwaps phase={phase} />
+        <MoodTracker phase={phase} />
         <WellnessTips phase={phase} pain={pain} />
 
         <Faq />
