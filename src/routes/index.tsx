@@ -9,6 +9,7 @@ import { getRecipes, getSwaps, type Suggestion } from "@/lib/nebius.functions";
 import { CycleHistory } from "@/components/CycleHistory";
 import { WellnessTips } from "@/components/WellnessTips";
 import { MoodTracker } from "@/components/MoodTracker";
+import { ingredientCautions } from "@/lib/ingredient-cautions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -178,8 +179,10 @@ function Results({ items, tags = [] }: { items: Suggestion[]; tags?: string[] })
       {items.slice(0, 3).map((s, i) => (
         <article key={i} className="result-card">
           {tags.length > 0 && <div className="mb-2 flex flex-wrap gap-1">{tags.map((t) => <span key={t} className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">{t}</span>)}</div>}
+          {!!s.adaptations?.length && <div className="mb-2 flex flex-wrap gap-1">{s.adaptations.map(c => <span key={c.id} className="inline-flex items-center gap-1 rounded-full border border-accent-foreground/40 bg-accent px-2 py-1 text-xs text-accent-foreground"><AlertTriangle className="h-3 w-3 shrink-0" /> {c.ingredient} adapted</span>)}</div>}
           <h3 className="font-display text-lg leading-tight">{s.title}</h3>
           <p className="text-sm text-muted-foreground">{s.description}</p>
+          {s.adaptations?.map(c => <p key={c.id} className="mt-2 text-sm text-muted-foreground"><span className="font-medium text-foreground">Why adapt {c.ingredient.toLowerCase()}? </span>{c.reason}</p>)}
           <ul className="mt-2 space-y-1 text-sm list-disc pl-4">{s.details.map((d, j) => <li key={j}>{d}</li>)}</ul>
         </article>
       ))}
@@ -202,16 +205,22 @@ function useAsk() {
 function RecipeEngine({ phase, pain }: { phase: PhaseName | null; pain: PainLevel }) {
   const [ing, setIng] = useState("");
   const [usedPain, setUsedPain] = useState<PainLevel>(pain);
+  const cautions = ingredientCautions(ing, phase, pain);
   const fetchRecipes = useServerFn(getRecipes);
   const { items, loading, error, run } = useAsk();
   return (
     <section className="card-soft space-y-4">
       <h2 className="section-title"><ChefHat className="h-5 w-5 text-primary" /> Fridge-to-plate</h2>
-      <textarea className="field min-h-24" placeholder="eggs, spinach, sweet potato…" value={ing} onChange={(e) => setIng(e.target.value)} />
-      <button className="btn-primary" disabled={!phase || !ing.trim() || loading}
+      <textarea aria-label="Ingredients on hand" aria-describedby={cautions.length ? "ingredient-cautions" : undefined} maxLength={500} className="field min-h-24" placeholder="eggs, spinach, sweet potato…" value={ing} onChange={(e) => setIng(e.target.value)} />
+      {!!cautions.length && <div id="ingredient-cautions" role="status" aria-live="polite" className="space-y-3 rounded-2xl border border-accent-foreground/40 bg-accent p-4">
+        <h3 className="flex items-start gap-2 font-medium text-accent-foreground"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> Ingredients to reconsider for comfort</h3>
+        <p className="text-sm text-foreground">For your {phase?.toLowerCase()} phase{pain === "Severe" ? " and severe pain" : ""}, these ingredients may be less comfortable—not forbidden.</p>
+        <ul className="space-y-3 text-sm">{cautions.map(c => <li key={c.id}><p className="font-medium">{c.ingredient}</p><p className="mt-1 text-muted-foreground">{c.reason}</p><p className="mt-1"><span className="font-medium">Gentler alternative: </span>{c.swap}.</p></li>)}</ul>
+      </div>}
+      <Button className="btn-primary" disabled={!phase || !ing.trim() || loading}
         onClick={() => { if (!phase) return; setUsedPain(pain); run(() => fetchRecipes({ data: { phase, focus: PHASES[phase].focus, ingredients: ing.trim(), painLevel: pain } })); }}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Cook up 3 ideas
-      </button>
+      </Button>
       {pain === "Severe" && <div role="alert" className="flex items-start gap-2 rounded-2xl border border-accent-foreground/40 bg-accent p-3 text-sm text-accent-foreground"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> For debilitating pain, consider rest and consulting a healthcare professional.</div>}
       {!phase && <p className="text-sm text-muted-foreground">Add your cycle above to unlock phase-matched recipes.</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
