@@ -18,8 +18,14 @@ export function CycleHistory({ onCycleChange }: { onCycleChange: (cycle: { start
     onCycleChange(estimate ? { start: estimate.latest, length: estimate.average } : null);
     setError("");
   }
+  function clearHistory() {
+    if (!window.confirm("Delete all logged cycle history from this device? This cannot be undone. Your current cycle settings and mood history will stay.")) return;
+    try { saveHistory([]); }
+    catch { setError("This browser could not delete your history. Please allow device storage and try again."); return; }
+    setHistory([]); setDate(""); setError("");
+  }
   return <section className="card-soft space-y-4">
-    <h2 className="section-title"><CalendarHeart className="h-5 w-5 text-primary" /> Cycle history</h2>
+    <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="section-title"><CalendarHeart className="h-5 w-5 text-primary" /> Cycle history</h2><Button type="button" variant="outline" size="sm" disabled={!history.length} onClick={clearHistory}><Trash2 /> Clear history</Button></div>
     <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Lock className="h-3 w-3" /> Dates stay on this device only.</p>
     {prediction && <dl className="grid gap-4 border-y py-4 sm:grid-cols-2">
       <div><dt className="text-sm text-muted-foreground">Average cycle length</dt><dd className="font-display text-2xl">{prediction.average} days</dd><dd className="text-xs text-muted-foreground">{prediction.count > 1 ? `Based on ${prediction.count} logged starts` : "28-day estimate · one logged start"}</dd></div>

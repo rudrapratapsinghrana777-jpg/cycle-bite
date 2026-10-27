@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarHeart, ChefHat, Activity, AlertTriangle, Candy, HelpCircle, Lock, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { CalendarHeart, ChefHat, Activity, AlertTriangle, Candy, HelpCircle, Lock, Loader2, RotateCcw, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { calcPhase, clearCycle, loadCycle, loadPain, PAIN_LEVELS, PHASES, saveCycle, savePain, type PainLevel, type PhaseName } from "@/lib/cycle";
@@ -10,6 +10,7 @@ import { CycleHistory } from "@/components/CycleHistory";
 import { WellnessTips } from "@/components/WellnessTips";
 import { MoodTracker } from "@/components/MoodTracker";
 import { ingredientCautions } from "@/lib/ingredient-cautions";
+import { resetCurrentPage } from "@/lib/page-reset";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -79,22 +80,31 @@ const FAQS = [
   },
 ];
 
-function loadCycleSafe() {
-  return typeof window !== "undefined" ? loadCycle() : null;
-}
-
 function Index() {
   const [start, setStart] = useState("");
   const [length, setLength] = useState(28);
   const [saved, setSaved] = useState(false);
   const [pain, setPain] = useState<PainLevel>("Mild");
+  const [storedCycle, setStoredCycle] = useState<{ start: string; length: number } | null>(null);
+  const [resetVersion, setResetVersion] = useState(0);
+  const [resetError, setResetError] = useState("");
   useEffect(() => {
     setPain(loadPain());
     const c = loadCycle();
+    setStoredCycle(c);
     if (c) { setStart(c.start); setLength(c.length); setSaved(true); }
   }, []);
   const info = start ? calcPhase(start, length) : null;
   const phase: PhaseName | null = info?.phase ?? null;
+
+  function startFresh() {
+    if (!window.confirm("Start fresh? This clears current inputs and suggestions. Your saved cycle and mood history will stay on this device.")) return;
+    try { resetCurrentPage(); }
+    catch { setResetError("This browser could not reset your saved settings. Please allow device storage and try again."); return; }
+    setStart(""); setLength(28); setSaved(false); setStoredCycle(null); setPain("Mild");
+    setResetVersion(value => value + 1); setResetError("");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
 
   return (
     <main className="relative min-h-screen overflow-x-clip bg-background">
@@ -106,7 +116,8 @@ function Index() {
           <h1 className="font-display text-5xl text-foreground">Cycle<span className="text-accent-foreground italic">Bite</span></h1>
           <p className="text-muted-foreground">Nourishment that moves with your rhythm.</p>
           <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"><Lock className="h-3 w-3" /> Your dates stay on this device only.</p>
-          <div className="pt-1"><a href="#faq" className="chip"><HelpCircle className="h-3.5 w-3.5 text-primary" /> Questions &amp; answers</a></div>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1"><a href="#faq" className="chip"><HelpCircle className="h-3.5 w-3.5 text-primary" /> Questions &amp; answers</a><Button variant="outline" onClick={startFresh}><RotateCcw /> Start fresh</Button></div>
+          {resetError && <p role="alert" className="text-sm text-destructive">{resetError}</p>}
         </header>
 
         <section className="card-soft space-y-4">
@@ -122,7 +133,7 @@ function Index() {
               </div>
               <div className="flex gap-2">
                 <button className="btn-ghost" onClick={() => setSaved(false)}>Change dates</button>
-                <button className="btn-ghost" onClick={() => { if (confirm("Clear your saved cycle from this device?")) { clearCycle(); setStart(""); setLength(28); setSaved(false); } }}><Trash2 className="h-4 w-4" /> Clear</button>
+                <button className="btn-ghost" onClick={() => { if (confirm("Clear your saved cycle from this device?")) { clearCycle(); setStart(""); setLength(28); setSaved(false); setStoredCycle(null); } }}><Trash2 className="h-4 w-4" /> Clear</button>
               </div>
             </div>
           ) : (<>
@@ -139,10 +150,10 @@ function Index() {
             </label>
           </div>
           <div className="flex gap-2">
-            <button className="btn-primary" disabled={!start} onClick={() => { saveCycle({ start, length }); setSaved(true); }}>
+            <button className="btn-primary" disabled={!start} onClick={() => { saveCycle({ start, length }); setStoredCycle({ start, length }); setSaved(true); }}>
               <Lock className="h-4 w-4" /> Save &amp; lock
             </button>
-            {loadCycleSafe() && <button className="btn-ghost" onClick={() => { const c = loadCycle(); if (c) { setStart(c.start); setLength(c.length); setSaved(true); } }}>Cancel</button>}
+            {storedCycle && <button className="btn-ghost" onClick={() => { setStart(storedCycle.start); setLength(storedCycle.length); setSaved(true); }}>Cancel</button>}
           </div>
           </>)}
           <PhaseTimeline phase={phase} day={info?.day ?? null} length={info?.length ?? length} />
@@ -159,8 +170,8 @@ function Index() {
         </section>
 
         <CycleHistory onCycleChange={cycle => {
-          if (cycle) { setStart(cycle.start); setLength(cycle.length); saveCycle(cycle); setSaved(true); }
-          else { clearCycle(); setStart(""); setLength(28); setSaved(false); }
+          if (cycle) { setStart(cycle.start); setLength(cycle.length); saveCycle(cycle); setStoredCycle(cycle); setSaved(true); }
+          else { clearCycle(); setStart(""); setLength(28); setSaved(false); setStoredCycle(null); }
         }} />
 
         <section className="card-soft space-y-4">
@@ -177,10 +188,10 @@ function Index() {
           <p className="text-xs text-muted-foreground">Saved on this device. Recipes adapt to how you feel.</p>
         </section>
 
-        <RecipeEngine phase={phase} pain={pain} />
-        <CravingSwaps phase={phase} />
-        <MoodTracker phase={phase} />
-        <WellnessTips phase={phase} pain={pain} />
+        <RecipeEngine key={`recipes-${resetVersion}`} phase={phase} pain={pain} />
+        <CravingSwaps key={`cravings-${resetVersion}`} phase={phase} />
+        <MoodTracker key={`moods-${resetVersion}`} phase={phase} />
+        <WellnessTips key={`wellness-${resetVersion}`} phase={phase} pain={pain} />
 
         <Faq />
 
