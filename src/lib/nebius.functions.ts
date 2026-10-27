@@ -1,26 +1,33 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const NEBIUS_BASE = "https://api.tokenfactory.nebius.com/v1/";
-const MODEL = "meta-llama/Meta-Llama-3.1-70B-Instruct";
+// AI provider: Google Gemini (OpenAI-compatible endpoint). Key read server-side only.
+const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest"];
 
 export type Suggestion = { title: string; description: string; details: string[] };
 
-async function callNebius(key: string | undefined, system: string, user: string): Promise<Suggestion[]> {
-  if (!key) throw new Error("The AI service isn't connected yet. Add your Nebius API key to enable suggestions.");
-  const res = await fetch(`${NEBIUS_BASE}chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: MODEL,
-      temperature: 0.7,
-      messages: [
-        { role: "system", content: system + ' Respond ONLY with JSON: {"items":[{"title":string,"description":string,"details":string[]}]} with at most 3 items.' },
-        { role: "user", content: user },
-      ],
-    }),
+async function callNebius(_legacy: string | undefined, system: string, user: string): Promise<Suggestion[]> {
+  const key = process.env["GEMINI_API_KEY"];
+  if (!key) throw new Error("The AI service isn't connected yet.");
+  const body = (model: string) => JSON.stringify({
+    model,
+    temperature: 0.7,
+    messages: [
+      { role: "system", content: system + ' Respond ONLY with JSON: {"items":[{"title":string,"description":string,"details":string[]}]} with at most 3 items.' },
+      { role: "user", content: user },
+    ],
   });
-  if (!res.ok) throw new Error(`AI request failed (${res.status}). Please try again shortly.`);
+  let res: Response | null = null;
+  for (const model of MODELS) {
+    res = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: body(model),
+    });
+    if (res.ok || ![404, 429, 500, 503].includes(res.status)) break;
+  }
+  if (!res || !res.ok) throw new Error(`AI request failed (${res?.status ?? "network"}). Please try again shortly.`);
   const json = await res.json();
   const text: string = json?.choices?.[0]?.message?.content ?? "";
   const match = text.match(/\{[\s\S]*\}/);
