@@ -1,5 +1,5 @@
 - [x] Add local cycle history and estimated next period, preserving existing sections.
 - [x] Add symptom wellness tips with private server calls and offline guidance.
 - [x] Test history predictions, persistence, removal, missing-key fallback, and mobile layout.
-- [ ] Add ingredient caution banners and affected-recipe badges; test warnings and live recipes.
-- [ ] Verify live personalised wellness tips with the current Gemini connection.
+- [x] Add ingredient caution banners and affected-recipe badges; test warnings and live recipes.
+- [x] Verify live personalised wellness tips with the current Gemini connection.
