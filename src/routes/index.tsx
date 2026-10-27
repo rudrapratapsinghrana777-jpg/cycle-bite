@@ -79,6 +79,10 @@ const FAQS = [
   },
 ];
 
+function loadCycleSafe() {
+  return typeof window !== "undefined" ? loadCycle() : null;
+}
+
 function Index() {
   const [start, setStart] = useState("");
   const [length, setLength] = useState(28);
@@ -107,6 +111,21 @@ function Index() {
 
         <section className="card-soft space-y-4">
           <h2 className="section-title"><CalendarHeart className="h-5 w-5 text-primary" /> Your cycle</h2>
+          {saved && start ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-muted/50 p-4">
+              <div className="flex items-start gap-2">
+                <Lock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <div>
+                  <p className="font-medium text-foreground">Locked: period started {new Date(start + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p>
+                  <p className="text-sm text-muted-foreground">{length}-day cycle · your results won't change by accident</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button className="btn-ghost" onClick={() => setSaved(false)}>Change dates</button>
+                <button className="btn-ghost" onClick={() => { if (confirm("Clear your saved cycle from this device?")) { clearCycle(); setStart(""); setLength(28); setSaved(false); } }}><Trash2 className="h-4 w-4" /> Clear</button>
+              </div>
+            </div>
+          ) : (<>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-sm">
               <span className="text-muted-foreground">Last period start</span>
@@ -121,10 +140,11 @@ function Index() {
           </div>
           <div className="flex gap-2">
             <button className="btn-primary" disabled={!start} onClick={() => { saveCycle({ start, length }); setSaved(true); }}>
-              {saved ? "Saved on device" : "Save on this device"}
+              <Lock className="h-4 w-4" /> Save &amp; lock
             </button>
-            {saved && <button className="btn-ghost" onClick={() => { clearCycle(); setStart(""); setLength(28); setSaved(false); }}><Trash2 className="h-4 w-4" /> Clear</button>}
+            {loadCycleSafe() && <button className="btn-ghost" onClick={() => { const c = loadCycle(); if (c) { setStart(c.start); setLength(c.length); setSaved(true); } }}>Cancel</button>}
           </div>
+          </>)}
           <PhaseTimeline phase={phase} day={info?.day ?? null} length={info?.length ?? length} />
           {info && phase && (
             <div className="phase-banner">
