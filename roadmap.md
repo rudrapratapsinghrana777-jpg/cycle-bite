@@ -3,3 +3,4 @@
 - [x] Test history predictions, persistence, removal, missing-key fallback, and mobile layout.
 - [x] Add ingredient caution banners and affected-recipe badges; test warnings and live recipes.
 - [x] Verify live personalised wellness tips with the current Gemini connection.
+- [x] Add separate Start fresh and confirmed Clear history actions; verify reset, cancellation and persistence.
