@@ -3,7 +3,7 @@ import { z } from "zod";
 
 // AI provider: Google Gemini (OpenAI-compatible endpoint). Key read server-side only.
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest"];
+const MODELS = ["gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-flash-latest"];
 
 export type Suggestion = { title: string; description: string; details: string[] };
 
