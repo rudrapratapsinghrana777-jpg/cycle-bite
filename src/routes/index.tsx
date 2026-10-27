@@ -169,7 +169,7 @@ function Index() {
           )}
         </section>
 
-        <CycleHistory onCycleChange={cycle => {
+        <CycleHistory key={`history-${resetVersion}`} onCycleChange={cycle => {
           if (cycle) { setStart(cycle.start); setLength(cycle.length); saveCycle(cycle); setStoredCycle(cycle); setSaved(true); }
           else { clearCycle(); setStart(""); setLength(28); setSaved(false); setStoredCycle(null); }
         }} />
