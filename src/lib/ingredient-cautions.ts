@@ -18,8 +18,8 @@ export function ingredientCautions(ingredients: string, phase: PhaseName | null,
 export function normalizeSuggestions(value: unknown, cautions: IngredientCaution[] = []): Suggestion[] {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 3).filter((item): item is Record<string, unknown> => !!item && typeof item === "object").map(item => ({
-    title: String(item.title ?? ""), description: String(item.description ?? ""),
-    details: Array.isArray(item.details) ? item.details.map(String).slice(0, 8) : [],
-    adaptations: cautions.filter(caution => Array.isArray(item.adaptedIngredientIds) && item.adaptedIngredientIds.includes(caution.id)),
+    title: String(item["title"] ?? ""), description: String(item["description"] ?? ""),
+    details: Array.isArray(item["details"]) ? item["details"].map(String).slice(0, 8) : [],
+    adaptations: cautions.filter(caution => Array.isArray(item["adaptedIngredientIds"]) && item["adaptedIngredientIds"].includes(caution.id)),
   }));
 }

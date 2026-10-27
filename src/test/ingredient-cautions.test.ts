@@ -21,8 +21,8 @@ describe("ingredient cautions", () => {
   it("only badges a card that reports adapting the flagged ingredient", () => {
     const cautions = ingredientCautions("coffee", "Menstrual", "Mild");
     const cards = normalizeSuggestions([{ adaptedIngredientIds: ["caffeine", "invented"] }, {}], cautions);
-    expect(cards[0].adaptations?.map(c => c.id)).toEqual(["caffeine"]);
-    expect(cards[1].adaptations).toEqual([]);
+    expect(cards[0]?.adaptations?.map(c => c.id)).toEqual(["caffeine"]);
+    expect(cards[1]?.adaptations).toEqual([]);
   });
   it("never returns more than three suggestions", () => {
     expect(normalizeSuggestions(Array.from({ length: 5 }, (_, i) => ({ title: String(i) })))).toHaveLength(3);
