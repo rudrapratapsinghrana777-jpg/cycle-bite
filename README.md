@@ -1,4 +1,4 @@
-# Moon Meal Compass
+# cycle-bite
 
 Build a single-page, mobile-responsive React web application named CycleBite.
 
